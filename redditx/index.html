@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+
+
+    <html>
+
+    <head>
+
+        <title>Reddit mobile web viewer</title>
+
+        
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+<meta charset="utf8"></head>
+<body>
+
+<div id="body">
+
+</div>
+
+
+<script>
+function doit(){
+function getget(name, url = window.location.href) {
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
+
+var fill = '';
+url = getget('url');
+url = url.replace(/amp.reddit.com/g, 'www.reddit.com');
+url = url.replace(/m.reddit.com/g, 'www.reddit.com');
+url = url.replace(/i.reddit.com/g, 'www.reddit.com');
+url = url+'.json';
+//url = 'https://www.reddit.com/r/librandu/comments/ppt1o9/tight_slap_to_string_ft_string/.json';
+var req = new XMLHttpRequest();
+req.responseType = 'json';
+req.open('GET', url, true);
+req.onload  = function() {
+   var jsonResponse = req.response;
+   // do something with jsonResponse
+  // console.log(jsonResponse);
+//console.log(jsonResponse[0]['data']['children'][0]);
+fill  += '<div class="rdxt_h1">'+  jsonResponse[0]['data']['children'][0]['data']['title']+'</div>';
+document.title = jsonResponse[0]['data']['children'][0]['data']['title'];
+fill += '<div class="rdxt_selftext">'+  jsonResponse[0]['data']['children'][0]['data']['selftext']+'</div>';
+
+
+
+urli = jsonResponse[0]['data']['children'][0]['data']['url_overridden_by_dest'];
+console.log(urli);
+if(typeof urli != "undefined"){
+if (urli.match(/.(jpg|jpeg|png|gif)$/i))
+{
+fill += '<div class="rdxt_selftext"><img src="'+ urli +'"/></div>';
+}
+else {
+fill += '<div class="rdxt_selftext"><a href="'+ urli +'" target="_blank">'+urli +'</a></div>';
+}
+}
+comments = jsonResponse[1]['data']['children'];
+function htmlDecode(input){
+  var e = document.createElement('textarea');
+  e.innerHTML = input;
+  // handle case of empty input
+  return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
+}
+
+
+
+
+function handlerepliesmn(repliesca){
+replieslsa = repliesca['data']['children'];
+
+for( reply in replieslsa) {
+
+//console.log("yy" + replyzz);
+fill += '<div class="comment ccp'+ replieslsa[reply]['data']['depth'] +'"><div class="comment_author">'+ replieslsa[reply]['data']['author'] +' &bull; '+ replieslsa[reply]['data']['score'] +' votes</div><div class="comment_text">'+ htmlDecode(replieslsa[reply]['data']['body_html']) +'</div></div>';
+replieshha  = replieslsa[reply]['data']['replies'];
+if(typeof replieshha === 'object' && replieshha !== null){
+fill+= '<a class="viewmore" href="https://np.reddit.com'+replieslsa[reply]['data']['permalink']+'" target="_blank">view more replies</a>';
+}
+}
+}
+
+
+function handlerepliesm(repliesc){
+repliesls = repliesc['data']['children'];
+
+for( reply in repliesls) {
+
+//console.log("yy" + replyzz);
+fill += '<div class="comment ccp'+ repliesls[reply]['data']['depth'] +'"><div class="comment_author">'+ repliesls[reply]['data']['author'] +' &bull; '+ repliesls[reply]['data']['score'] +' votes</div><div class="comment_text">'+ htmlDecode(repliesls[reply]['data']['body_html']) +'</div></div>';
+replieshh  = repliesls[reply]['data']['replies'];
+if(typeof replieshh === 'object' && replieshh !== null){
+handlerepliesmn(replieshh);
+}
+}
+}
+function handlereplies(replies){
+repliesl = replies['data']['children'];
+
+for( reply in repliesl) {
+
+console.log("yy" + reply);
+fill += '<div class="comment ccp'+ repliesl[reply]['data']['depth'] +'"><div class="comment_author">'+ repliesl[reply]['data']['author'] +' &bull; '+ repliesl[reply]['data']['score'] +' votes</div><div class="comment_text">'+ htmlDecode(repliesl[reply]['data']['body_html']) +'</div></div>';
+repliesz  = repliesl[reply]['data']['replies'];
+if(typeof repliesz === 'object' && repliesz !== null){
+handlerepliesm(repliesz);
+}
+}
+}
+
+for(var item in comments) {
+console.log("xx" + item);
+
+fill +=  '<div class="comment ccp0"><div class="comment_author">'+ comments[item]['data']['author'] +' &bull; '+ comments[item]['data']['score'] +' votes</div><div class="comment_text">'+ htmlDecode(comments[item]['data']['body_html']) +'</div></div>';
+replies  = comments[item]['data']['replies'];
+if(typeof replies === 'object' && replies !== null){
+handlereplies(replies);
+}
+
+}
+
+
+document.getElementById('body').innerHTML = '';
+   document.body.innerHTML  = fill;
+};
+req.send(null);
+}
+doit();
+</script>
+
+<style>
+.rdxt_h1{font-size:40px}body{font-size:18px;font-family:segoe ui,arial,sans-serif;margin:0 auto}.comment{background:#f2f2f2;padding:10px;margin-bottom:5px}.comment_author{font-size:14px}.comment_text p{margin:0;padding:0;margin-bottom:5px}.comment.ccp1{border-left:2px solid #d82c2b;margin-left:15px}div#body{margin:0 auto;max-width:700px}.comment.ccp2{margin-left:35px;font-size:17px;border-left:2px solid #2fd01d}.comment.ccp3{margin-left:59px;font-size:16px;border-left:2px solid #d0ba17}a.viewmore{clear:both;display:block;text-align:right;color:#333;font-size:14px;margin-bottom:3px;margin-top:-10px}.ccp0{border-left:2px solid #0095ff}
+.rdxt_selftext img {
+    max-width: 100%;
+}
+
+
+
+.rdxt_h1 {
+    font-size: 40px;
+    background: #eee;
+    text-align: center;
+    padding: 15px;
+    font-size: 20px;
+}
+
+
+</style>
+</body></html>
