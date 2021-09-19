@@ -1,0 +1,187 @@
+
+<!DOCTYPE html>
+
+
+    <html>
+
+    <head>
+
+        <title>Reddit mobile web viewer</title>
+
+        
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+<meta charset="utf8"></head>
+<body>
+<div id="reddits"></div>
+<div id="addsub"><input type="text" id="subname" name="subname"/> <button onclick="addsub()">Add sub</button></div>
+<div id="body">
+
+</div>
+
+
+<script>
+function addsub(){
+
+if(JSON.parse(localStorage.getItem("subs")) == null){
+subsarray  = [];
+subsarray.push(document.getElementById('subname').value);
+localStorage.setItem("subs",JSON.stringify(subsarray));
+}
+else {
+subsarray= JSON.parse(localStorage.getItem("subs"));
+subsarray.push(document.getElementById('subname').value);
+localStorage.setItem("subs",JSON.stringify(subsarray));
+window.location.reload();
+}
+}
+function doit(){
+
+
+/*
+
+function getget(name, url = window.location.href) {
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+*/
+
+
+var fill = '';
+/*
+url = getget('url');
+url = url.replace(/amp.reddit.com/g, 'www.reddit.com');
+url = url.replace(/m.reddit.com/g, 'www.reddit.com');
+url = url.replace(/i.reddit.com/g, 'www.reddit.com');
+*/
+
+if(JSON.parse(localStorage.getItem("subs")) == null){
+substoload = "all";
+}
+else {
+subsarray= JSON.parse(localStorage.getItem("subs"));
+substoload = subsarray.join("+");
+}
+
+
+
+url='https://www.reddit.com/r/'+substoload+'/';
+console.log(url);
+url = url+'.json?limit=100';
+var req = new XMLHttpRequest();
+req.responseType = 'json';
+req.open('GET', url, true);
+req.onload  = function() {
+   var jsonResponse = req.response;
+   // do something with jsonResponse
+  // console.log(jsonResponse);
+//console.log(jsonResponse[0]['data']['children'][0]);
+
+//thisthread = jsonResponse[0]['data']['children'][0]['data'];
+
+var titlesx = url.replace("https://www.reddit.com/r/", "");
+ titlesx = titlesx.replace("/.json", "");
+
+
+fill  += '<div class="rdxt_h1">'+ titlesx+'</div>';
+
+//fill += '<div class="meta">In: '+  thisthread['subreddit_name_prefixed']+' by: u/'+  thisthread['author']+' on: '+datestring+'</div>';
+
+document.title = titlesx;
+//fill += '<div class="rdxt_selftext">'+  htmlDecode(thisthread['selftext_html'])+'</div>';
+
+/*
+
+urli = thisthread['url_overridden_by_dest'];
+console.log(urli);
+if(typeof urli != "undefined"){
+if (urli.match(/.(jpg|jpeg|png|gif)$/i))
+{
+fill += '<div class="rdxt_selftext"><img src="'+ urli +'"/></div>';
+}
+else {
+fill += '<div class="rdxt_selftext"><a href="'+ urli +'" target="_blank">'+urli +'</a></div>';
+}
+}
+*/
+posts = jsonResponse['data']['children'];
+function htmlDecode(input){
+  var e = document.createElement('textarea');
+  e.innerHTML = input;
+  // handle case of empty input
+  return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
+}
+
+
+
+for(var item in posts) {
+console.log("xx" + item);
+
+
+fill +=  '<div class="post"><div class="post_author">'+ posts[item]['data']['author'] +' &bull; '+ posts[item]['data']['score'] +' votes</div><div class="post_link"><a href="redditx.html?url=https://www.reddit.com'+ posts[item]['data']['permalink']+'">'+posts[item]['data']['title']+'</a></div></div>';
+
+
+
+}
+
+
+document.getElementById('body').innerHTML = fill;
+  
+};
+req.send(null);
+}
+doit();
+</script>
+
+<style>
+.rdxt_h1{font-size:40px}body{font-size:18px;font-family:segoe ui,arial,sans-serif;margin:0 auto}.comment{background:#f2f2f2;padding:10px;margin-bottom:5px;    word-break: break-word;}
+h1 {
+    margin: 6px 0px;
+    padding: 0;
+    font-size: 1.5em;
+}
+
+h2 {
+    margin: 6px 0px;
+    padding: 0;
+    font-size: 1.3em;
+}
+blockquote {
+    font-size: 16px;
+    border-left: 2px solid grey;
+    padding-left: 10px;
+    margin-left: 10px;
+    color: #444;
+}
+p {margin: 0;margin-bottom: 12px;}
+.comment_author{font-size:14px}.comment_text p{margin:0;padding:0;margin-bottom:5px}.comment.ccp1{border-left:2px solid #d82c2b;margin-left:15px}div#body{margin:0 auto;max-width:700px}.comment.ccp2{margin-left:35px;font-size:17px;border-left:2px solid #2fd01d}.comment.ccp3{margin-left:59px;font-size:16px;border-left:2px solid #d0ba17}a.viewmore{clear:both;display:block;text-align:right;color:#333;font-size:14px;margin-bottom:3px;margin-top:-10px}.ccp0{border-left:2px solid #0095ff}
+.rdxt_selftext img {
+    max-width: 100%;
+}
+.rdxt_selftext {
+    padding: 10px;
+    font-size: 17px;
+    word-break: break-word;
+}
+
+
+.rdxt_h1 {
+    font-size: 40px;
+    background: #eee;
+    text-align: center;
+    padding: 15px;
+    font-size: 20px;
+}
+.meta {
+    background: white;
+    text-align: center;
+    font-size: 15px;
+    padding: 5px 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+</style>
+</body></html>
