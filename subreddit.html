@@ -78,7 +78,7 @@ substoload = subsarray.join("+");
 
 url='https://www.reddit.com/r/'+substoload+'/';
 console.log(url);
-url = url+'.json?limit=70';
+url = url+'.json?limit=50';
 var req = new XMLHttpRequest();
 req.responseType = 'json';
 req.open('GET', url, true);
@@ -129,7 +129,7 @@ for(var item in posts) {
 console.log("xx" + item);
 pid =  posts[item]['data'];
 
-fill +=  '<div class="post"><div class="post_author">'+ posts[item]['data']['author'] +' &bull; '+ posts[item]['data']['score'] +' votes &bull; '+pid["subreddit_name_prefixed"]+'</div><div class="post_link"><a href="mmm.html?url=https://www.reddit.com'+ posts[item]['data']['permalink']+'">'+posts[item]['data']['title']+'</a></div>';
+fill +=  '<div class="post"><div class="post_author">'+ posts[item]['data']['author'] +' &bull; '+ posts[item]['data']['score'] +' votes &bull; '+pid["subreddit_name_prefixed"]+'</div><div class="post_link"><a href="redditx.html?url=https://www.reddit.com'+ posts[item]['data']['permalink']+'">'+posts[item]['data']['title']+'</a></div>';
 if(pid["selftext_html"] != null){
 fill += '<div class="postc selftext">'+htmlDecode(pid["selftext_html"])+'</div>';
 }
@@ -262,7 +262,7 @@ p {margin: 0;margin-bottom: 12px;}
 	color: #069;
 }
 .post_link {
-    padding: 3px 0px 5px;
+    padding: 6px 0px 8px;
 }
 
 .postc.singleimage img {
