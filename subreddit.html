@@ -12,9 +12,12 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
 <meta charset="utf8"></head>
 <body>
-<div id="reddits"></div>
-<div id="addsub"><input type="text" id="subname" name="subname"/> <button onclick="addsub()">Add sub</button>
-<button onclick="localStorage.removeItem('subs');">Clr</button>
+<div id="pagetitle" onclick="toggle('subssearch')">Home <small><small>(Change &darr;)</small></small></div>
+<div id="subssearch" class="hidden">
+<input type="text" id="subssearchi" name="q" oninput="searchsubs(this.value)"/>
+<div id="subslist">
+
+</div>
 </div>
 <div id="body">
 
@@ -22,30 +25,53 @@
 
 
 <script>
-function addsub(){
+var bmr = '';
 
-if(JSON.parse(localStorage.getItem("subs")) == null){
-subsarray  = [];
-subsarray.push(document.getElementById('subname').value);
-localStorage.setItem("subs",JSON.stringify(subsarray));
+
+function toggle(id){
+document.getElementById(id).classList.toggle("hidden");
+document.getElementById(id).classList.toggle("show");
 }
-else {
-subsarray= JSON.parse(localStorage.getItem("subs"));
-subsarray.push(document.getElementById('subname').value);
-localStorage.setItem("subs",JSON.stringify(subsarray));
-window.location.reload();
+
+function searchsubs(q) {
+if(bmr){bmr.abort();}
+if(q.length > 1){
+var xhr = new XMLHttpRequest();
+ bmr = xhr;
+xhr.onreadystatechange = function()
+{
+    if (xhr.readyState === 4 && xhr.status == 200)
+    {
+        subslist = xhr.response;
+		fillsubs = '';
+		console.log(subslist);
+		for (var singlesub in subslist['subreddits'] )   
+{
+console.log(subslist[singlesub]);
+fillsubs += '<a href="subreddit.html?r=' + subslist['subreddits'][singlesub]['name']+'">'+subslist['subreddits'][singlesub]['name']+'</a>';
 }
+		document.getElementById('subslist').innerHTML = fillsubs;
+		}
 }
+xhr.responseType = 'json';
+
+xhr.open('GET', 'https://www.reddit.com//api/subreddit_autocomplete/.json?query='+q+'&include_profiles=false&include_over_18=true', true)
+xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+xhr.send();
+}
+
+}
+
 function htmlDecode(input){
   var e = document.createElement('textarea');
   e.innerHTML = input;
   // handle case of empty input
   return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
 }
+
+
+
 function doit(){
-
-
-/*
 
 function getget(name, url = window.location.href) {
     name = name.replace(/[\[\]]/g, '\\$&');
@@ -55,7 +81,7 @@ function getget(name, url = window.location.href) {
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
-*/
+
 
 
 var fill = '';
@@ -66,19 +92,19 @@ url = url.replace(/m.reddit.com/g, 'www.reddit.com');
 url = url.replace(/i.reddit.com/g, 'www.reddit.com');
 */
 
-if(JSON.parse(localStorage.getItem("subs")) == null){
-substoload = "all";
-}
-else {
-subsarray= JSON.parse(localStorage.getItem("subs"));
-substoload = subsarray.join("+");
-}
-
+substoload = getget('r');
+document.getElementById('pagetitle').innerHTML = getget('r');
 
 
 url='https://www.reddit.com/r/'+substoload+'/';
 console.log(url);
-url = url+'.json?limit=50';
+url = url+'.json?limit=20';
+if(getget('after') != null){
+url = url+'&after='+getget('after');
+}
+if(getget('before') != null){
+url = url+'&after='+getget('before');
+}
 var req = new XMLHttpRequest();
 req.responseType = 'json';
 req.open('GET', url, true);
@@ -94,7 +120,7 @@ var titlesx = url.replace("https://www.reddit.com/r/", "");
  titlesx = titlesx.replace("/.json", "");
 
 
-fill  += '<div class="rdxt_h1">'+ titlesx+'</div>';
+//fill  += '<div class="rdxt_h1">'+ titlesx+'</div>';
 
 //fill += '<div class="meta">In: '+  thisthread['subreddit_name_prefixed']+' by: u/'+  thisthread['author']+' on: '+datestring+'</div>';
 
@@ -129,7 +155,7 @@ for(var item in posts) {
 console.log("xx" + item);
 pid =  posts[item]['data'];
 
-fill +=  '<div class="post"><div class="post_author">'+ posts[item]['data']['author'] +' &bull; '+ posts[item]['data']['score'] +' votes &bull; '+pid["subreddit_name_prefixed"]+'</div><div class="post_link"><a href="redditx.html?url=https://www.reddit.com'+ posts[item]['data']['permalink']+'">'+posts[item]['data']['title']+'</a></div>';
+fill +=  '<div class="post"><div class="post_author">'+ posts[item]['data']['author'] +' &bull; '+ posts[item]['data']['score'] +' votes &bull; '+pid["subreddit_name_prefixed"]+'</div><div class="post_link"><a href="comments.html?url=https://www.reddit.com'+ posts[item]['data']['permalink']+'">'+posts[item]['data']['title']+'</a></div>';
 if(pid["selftext_html"] != null){
 fill += '<div class="postc selftext">'+htmlDecode(pid["selftext_html"])+'</div>';
 }
@@ -188,8 +214,16 @@ fill += '<div class="postc link"><a href="'+ urli +'" target="_blank">'+urli +'<
 
 
 fill += '</div>';}
+fill += '<div class="navigate">';
+
+var curpage = window.location.href.replace(/\&after.*/,'');
 
 
+if(jsonResponse['data']['after'] != null) {
+fill += '<a class="next" href="'+curpage+'&after='+jsonResponse['data']['after']+'">Next page</a>'
+}
+
+fill += '</div>';
 document.getElementById('body').innerHTML = fill;
   
 };
@@ -305,6 +339,82 @@ p {margin: 0;margin-bottom: 12px;}
 }
 .postc.selftext a {
     color: #333;
+}
+div#addsub {
+    display: none;
+}
+
+div#pagetitle {
+    text-align: center;
+    background: #eee;
+    padding: 8px;
+}
+.navigate {
+    padding: 10px 0px;
+}
+
+a.next {
+    text-align: right;
+    display: block;
+    color: #369;
+    text-decoration: none;
+}
+
+div#subssearch {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 90%;
+    max-width: 500px;
+    margin: 0 auto;
+    background: white;
+    z-index: 1000;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-top: 0px;
+    box-shadow: 0px 49px 30px #00000033;
+    border-radius: 0px 0px 5% 5%;
+}
+
+div#subslist a {
+    display: block;
+    border-bottom: 1px solid #eee;
+    padding: 10px 0px;
+    text-decoration: none;
+    color: #444;
+    font-size: 16px;
+    padding-left: 2%;
+}
+
+input#subssearchi {
+    background: #ddd;
+    background: white;
+    border: 2px solid #ddd;
+    outline: none;
+    padding: 10px;
+    width: 94%;
+    margin: 0 auto;
+    display: block;
+    border-radius: 10px;
+}
+.show {
+
+    animation: jump 0.2s;
+}
+.hidden{display:none;}
+
+@keyframes jump{
+from{
+
+opacity:0;
+transform: scale(0.8);
+}
+to{
+ transform: translateY(0px);   
+ opacity:1;
+ transform:scale(1);
+}
+
 }
 </style>
 </body></html>
