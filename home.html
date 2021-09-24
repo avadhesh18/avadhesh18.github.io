@@ -12,17 +12,26 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
 <meta charset="utf8"></head>
 <body>
-<div id="reddits"></div>
-<div id="addsub"><input type="text" id="subname" name="subname"/> <button onclick="addsub()">Add sub</button>
-<button onclick="localStorage.removeItem('subs');">Clr</button>
+
+<div id="pagetitle" >
+<span id="plus" onclick="toggle('leftbar')" >+</span>
+<span id="pagetitletext" onclick="toggle('subssearch')">Home </span>
+<span id="menu" onclick="toggle('rightbar')" ><span class="menubars">Menu</span></span>
 </div>
-<div id="pagetitle" onclick="toggle('subssearch')">&nbsp;</small></div>
 <div id="subssearch" class="hidden">
-<input type="text" id="subssearchi" name="q" oninput="searchsubs(this.value)"/>
+<input type="text" id="subssearchi" name="qury" onkeyup="searchsubs(this.value,event)" autocomplete="off"/>
 <div id="subslist">
 
 </div>
 </div>
+<div id="leftbar" class="hidden">
+<div class="list">
+<a href="sr.html" class="homelinks">Home</a>
+<a href="subreddit.htm?r=alll" class="homelinks">All</a>
+<div id="subscribed"></div>
+</div>
+</div>
+<div id="rightbar" class="hidden"></div>
 <div id="body">
 
 </div>
@@ -33,13 +42,22 @@ var bmr = '';
 
 
 function toggle(id){
-document.getElementById(id).classList.toggle("hidden");
-document.getElementById(id).classList.toggle("show");
+var x = document.getElementsByClassName("show");
+for (k = 0; k < x.length; k++) {
+if(x[k].id != id) {
+  x[k].classList.toggle("hidden");
+  x[k].classList.toggle("show");  }
 }
 
-function searchsubs(q) {
+document.getElementById(id).classList.toggle("hidden");
+document.getElementById(id).classList.toggle("show");
+if(id == "subssearch"){
+document.getElementById("subssearchi").focus();
+}
+}
+
+function searchsubs(q,event) {
 if(bmr){bmr.abort();}
-if(q.length > 1){
 var xhr = new XMLHttpRequest();
  bmr = xhr;
 xhr.onreadystatechange = function()
@@ -54,44 +72,63 @@ xhr.onreadystatechange = function()
 console.log(subslist[singlesub]);
 fillsubs += '<a href="subreddit.html?r=' + subslist['subreddits'][singlesub]['name']+'">'+subslist['subreddits'][singlesub]['name']+'</a>';
 }
-		document.getElementById('subslist').innerHTML = fillsubs;
+document.getElementById('subslist').innerHTML = fillsubs;
 		}
 }
 xhr.responseType = 'json';
-
 xhr.open('GET', 'https://www.reddit.com//api/subreddit_autocomplete/.json?query='+q+'&include_profiles=false&include_over_18=true', true)
 xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 xhr.send();
+if(q.length > 1){
+var key = event.keyCode || event.charCode;
+if( key == 13 ) {
+if(typeof subslist['subreddits'] !== undefined) {
+window.location = 'subreddit.html?r=' + subslist['subreddits'][0]['name']+'';}
+}}
 }
 
-}
-function addsub(){
-
-if(JSON.parse(localStorage.getItem("subs")) == null){
-subsarray  = [];
-subsarray.push(document.getElementById('subname').value);
-localStorage.setItem("subs",JSON.stringify(subsarray));
-}
-else {
-subsarray= JSON.parse(localStorage.getItem("subs"));
-subsarray.push(document.getElementById('subname').value);
-localStorage.setItem("subs",JSON.stringify(subsarray));
-window.location.reload();
-}
-}
 function htmlDecode(input){
   var e = document.createElement('textarea');
   e.innerHTML = input;
   // handle case of empty input
   return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
 }
+function timeago(o){var t=Math.floor((new Date-o)/1e3),a=t/31536e3;return a>1?Math.floor(a)+"y":(a=t/2592e3)>1?Math.floor(a)+"mo":(a=t/86400)>1?Math.floor(a)+"d":(a=t/3600)>1?Math.floor(a)+"h":(a=t/60)>1?Math.floor(a)+"m":Math.floor(t)+"s"}
+function addlc(to,data){
+addarr = JSON.parse(localStorage.getItem(to) || '[]');
+addarr.push(data);
+localStorage.setItem(to,JSON.stringify(addarr));
+}
 
+function checklc(to,cfor){
+chkarr = JSON.parse(localStorage.getItem(to) || '[]');
+return chkarr.includes(cfor);
 
+}
+function removelc(to,cfor){
+addarr = JSON.parse(localStorage.getItem(to) || '[]');
+addarr = addarr.filter(function(item) {
+    return item !== cfor
+})
 
+localStorage.setItem(to,JSON.stringify(addarr));
+}
+function unsubscribe(sub){removelc('subs',sub); subbtn = document.getElementById('subbtn');  
+ subbtn.setAttribute( "onclick",  'subscribe(\''+sub+'\')' ); subbtn.innerHTML = 'Subscribe';}
+function subscribe(sub){addlc('subs',sub);
+subbtn = document.getElementById('subbtn');
+subbtn.setAttribute( "onclick",  'unsubscribe(\''+sub+'\')' );
+ subbtn.innerHTML = 'Unsubscribe';}
 function doit(){
 
 
-
+if(JSON.parse(localStorage.getItem("subs")) !== null){
+subslisted = ''; subslistedarray = JSON.parse(localStorage.getItem("subs"));
+for(x in subslistedarray){
+subslisted += '<a href="?subreddit,html?r='+subslistedarray[x]+'" class="homelinks">'+subslistedarray[x]+'</a>';
+}
+document.getElementById('subscribed').innerHTML = subslisted;
+}
 
 function getget(name, url = window.location.href) {
     name = name.replace(/[\[\]]/g, '\\$&');
@@ -104,6 +141,15 @@ function getget(name, url = window.location.href) {
 
 
 
+links = '<a href="subreddit.html?r='+getget('r')+'&sort=new">New</a><a href="subreddit.html?r='+getget('r')+'&sort=best">Best</a><a href="subreddit.html?r='+getget('r')+'&sort=rising">Rising</a><a href="subreddit.html?r='+getget('r')+'&sort=top">Top</a><a href="subreddit.html?r='+getget('r')+'&sort=top&t=month">Top (month)</a><a href="subreddit.html?r='+getget('r')+'&sort=top&t=all">Top (all)</a>';
+if(checklc('subs',getget('r'))){
+links += '<a onclick="unsubscribe(\''+getget('r')+'\')" id="subbtn">Unsubscribe</a>';
+}
+else {
+links += '<a onclick="subscribe(\''+getget('r')+'\')" id="subbtn">Subscribe</a>';
+}
+
+document.getElementById('rightbar').innerHTML = links;
 var fill = '';
 /*
 url = getget('url');
@@ -119,18 +165,29 @@ else {
 subsarray= JSON.parse(localStorage.getItem("subs"));
 substoload = subsarray.join("+");
 }
-
+document.getElementById('pagetitletext').innerHTML = 'Homepage';
 
 
 url='https://www.reddit.com/r/'+substoload+'/';
+if(getget('sort') != null){
+url = url+''+getget('sort')+'';
+}
+
+
 console.log(url);
-url = url+'.json?limit=20';
+url = url+'.json?limit=30';
+if(getget('t') != null){
+console.log(getget('t'));
+url = url+'&t='+getget('t');
+}
+
 if(getget('after') != null){
 url = url+'&after='+getget('after');
 }
 if(getget('before') != null){
-url = url+'&after='+getget('before');
+url = url+'&before='+getget('before');
 }
+
 var req = new XMLHttpRequest();
 req.responseType = 'json';
 req.open('GET', url, true);
@@ -180,81 +237,136 @@ function htmlDecode(input){
 for(var item in posts) {
 console.log("xx" + item);
 pid =  posts[item]['data'];
-
-fill +=  '<div class="post"><div class="post_author">'+ posts[item]['data']['author'] +' &bull; '+ posts[item]['data']['score'] +' votes &bull; '+pid["subreddit_name_prefixed"]+'</div><div class="post_link"><a href="comments.html?url=https://www.reddit.com'+ posts[item]['data']['permalink']+'">'+posts[item]['data']['title']+'</a></div>';
-if(pid["selftext_html"] != null){
-fill += '<div class="postc selftext">'+htmlDecode(pid["selftext_html"])+'</div>';
+fill += postbuilder(pid);
 }
-urli = pid['url_overridden_by_dest'];
-console.log(urli);
-if(typeof urli != "undefined"){
-if (urli.match(/.(jpg|jpeg|png|gif)$/i))
-{
-fill += '<div class="postc singleimage"><img src="'+ urli +'"/></div>';
-}
-else if (urli.match(/www.reddit.com\/gallery/g))
-{
-fill += '<div class="postc gallery">';
-for(var singlept in pid['media_metadata']) {
-
-singleptlink = pid['media_metadata'][singlept]['s']['u'];
-singleptlink = singleptlink.replace("preivew.redd", "i.redd");
-fill +='<img src="'+singleptlink+'" />';
-}
-fill += '</div>';
-}
-else if (urli.match(/v.redd.it/g))
-{
-fill += '<div class="postc video">';
-if(pid['secure_media'] != null) {
-vidurl =  pid['secure_media']['reddit_video']['fallback_url']; 
-
-
-
-fill +='<video src="'+vidurl+'" poster="'+pid["thumbnail"]+'" width="100%" height="240" preload="metadata" controls> </video>';
-}
-else {fill += 'crosspost';}
-fill += '</div>';
-}
-else if (urli.match(/redgifs/g))
-{
-console.log(urli);
-fill += '<div class="postc video">';
-
-vidurl = pid['secure_media']['oembed']['thumbnail_url']; 
-
-vidurl = vidurl.replace("-mobile.jpg", ".mp4")
-//vidurl = urli.replace("https://redgifs.com/watch/", "https://thumbs2.redgifs.com/")
-
-//vidurl  = vidurl +'.mp4';
-fill +='<video src="'+vidurl+'" poster="'+pid["thumbnail"]+'" width="100%" height="240" preload="metadata" controls> </video>';
-
-
-fill += '</div>';
-}
-
-else {
-fill += '<div class="postc link"><a href="'+ urli +'" target="_blank">'+urli +'</a></div>';
-}
-}
-
-
-fill += '</div>';}
 fill += '<div class="navigate">';
-
-if(jsonResponse['data']['before'] != null) {
-fill += '<a class="prev" href="?before='+jsonResponse['data']['before']+'">Prev page</a>'
-}
-
+var curpage = window.location.href.replace(/\&after.*/,'');
 if(jsonResponse['data']['after'] != null) {
-fill += '<a class="next" href="?after='+jsonResponse['data']['after']+'">Next page</a>'
+fill += '<a class="next" href="'+curpage+'&after='+jsonResponse['data']['after']+'">Next page</a>'
 }
-
 fill += '</div>';
 document.getElementById('body').innerHTML = fill;
   
 };
 req.send(null);
+}
+
+
+function postbuilder(post){
+returnfpost = '';
+timeagoed = timeago(post['created_utc']*1000);
+returnfpost +=  '<div class="post" id="'+post['id']+'"><div class="post_author">'+ post['author'] +' &bull; <a href="subreddit.html?r='+pid["subreddit"]+'">'+pid["subreddit_name_prefixed"]+'</a> &bull; '+timeagoed+'</div><div class="post_link"><a href="comments.html?url=https://www.reddit.com'+ post['permalink']+'">'+post['title']+'</a></div>';
+if(post["selftext_html"] != null){
+returnfpost += '<div class="postc selftext">'+htmlDecode(post["selftext_html"])+'</div>';
+}
+urli = post['url_overridden_by_dest'];
+if(typeof urli != "undefined"){  returnfpost += urlpreview(urli,pid); }
+if(pid['poll_data'] != null){
+returnfpost += pollbuilder(pid);
+}
+returnfpost += '<div class="post_meta">'+pid['score']+' votes &bull; '+pid['num_comments']+' comments</div></div>';
+return returnfpost;
+}
+function urlpreview(urli,postjson) {
+returnpost = '';	
+	if (urli.match(/.(jpg|jpeg|png|gif)$/i))
+	{
+		returnpost += '<div class="postc singleimage"><img src="'+ urli +'"/></div>';
+	}
+	else if (urli.match(/www.reddit.com\/gallery/g))
+	{
+	returnpost += '<div class="postc gallery">';
+	for(var singlept in postjson['media_metadata']) {
+		singleptlink = postjson['media_metadata'][singlept]['s']['u'];
+		if(typeof singleptlink == "undefined"){          singleptlink = postjson['media_metadata'][singlept]['s']['gif'];          }
+		else {
+		singleptlink = singleptlink.replace("preivew.redd", "i.redd");}
+		returnpost +='<img src="'+singleptlink+'" />';
+	}
+	returnpost += '</div>';
+	}
+	else if (urli.match(/v.redd.it/g))
+	{
+	returnpost += '<div class="postc video">';
+		if(postjson['secure_media'] != null) {
+		vidurl =  postjson['secure_media']['reddit_video']['fallback_url']; 
+		returnpost +='<video id="v'+postjson['id']+'" src="'+vidurl+'" poster="'+postjson["thumbnail"]+'" width="100%" height="240" preload="metadata" onplay="playaud(\'a'+postjson['id']+'\')"  onpause="pauseaud(\'a'+postjson['id']+'\')"  onseeking="pauseaud(\'a'+postjson['id']+'\')"  onseeked="seeked(\''+postjson['id']+'\')"   controls> </video><audio src="'+urli+'/DASH_audio.mp4" id="a'+postjson['id']+'" controls></audio>	';
+		}
+		else {returnpost += 'crosspost';}
+	returnpost += '</div>';
+	}
+	else if (urli.match(/redgifs/g))
+	{
+	
+	returnpost += '<div class="postc video">';
+	vidurl = postjson['secure_media']['oembed']['thumbnail_url']; 
+	if(typeof vidurl == "undefined"){
+		vidurl = urli.replace("redgifs.com/watch/", "redgifs.com/ifr/");
+		vidurl = '<iframe src="'+vidurl+'?autoplay=0" class="gifframe"></iframe>';
+		returnpost += vidurl;
+	}
+	else {
+		vidurl = vidurl.replace("-mobile.jpg", ".mp4")
+		returnpost +='<video src="'+vidurl+'" poster="'+postjson["thumbnail"]+'" width="100%" height="240" preload="metadata" controls> </video>';
+	}
+	returnpost += '</div>';
+	}
+	else if (urli.match(/gfycat.com/g)){
+	returnpost += '<div class="postc video">';
+	if(postjson['secure_media'] == null || typeof postjson['secure_media']['oembed']['thumbnail_url'] == "undefined" ){
+		vidurl = urli.replace("gfycat.com/", "gfycat.com/ifr/");
+		vidurl = '<iframe src="'+vidurl+'?autoplay=0" class="gifframe"></iframe>';
+		returnpost += vidurl;
+	}
+	else {
+		vidurl = postjson['secure_media']['oembed']['thumbnail_url']; 
+		vidurl = vidurl.replace("size_restricted.gif", "mobile.mp4")
+		returnpost +='<video src="'+vidurl+'" poster="'+postjson["thumbnail"]+'" width="100%" height="240" preload="metadata" controls> </video>';
+		}
+	returnpost += '</div>';
+	}
+	else if (urli.match(/i.imgur.com(.*?)gifv/g))
+	{
+	returnpost += '<div class="postc video">';
+	vidurl = urli.replace(".gifv", ".mp4") 
+	returnpost +='<video src="'+vidurl+'" poster="'+postjson["thumbnail"]+'" width="100%" height="240" preload="metadata" controls> </video>';
+	returnpost += '</div>';
+	}
+	else {
+	thumbnailforit = '';
+	if(postjson["thumbnail"].length > 9){
+		returnpost += '<a href="'+ urli +'" target="_blank" class="wholethumb"><div class="postc thumblink"><div class="thumb"><img src="'+postjson["thumbnail"]+'"/></div><div class="thumblinklink">'+urli +'</div></div></a>';
+	}
+	else {
+		returnpost += '<div class="postc link"><a href="'+ urli +'" target="_blank">'+thumbnailforit+''+urli +'</a></div>';
+	}
+	}
+	return returnpost;
+}
+function pollbuilder(postjson) {
+	returnpoll = '<div class="poll">';
+	for(popt in postjson['poll_data']['options']){
+		vote_count = postjson['poll_data']['options'][popt]['vote_count'];
+		"undefined"==typeof vote_count&&(vote_count=" ");
+		returnpoll += '<div class="polloption"><span class="polloptiontext">'+postjson['poll_data']['options'][popt]['text']+'</span> <span  class="votecount">'+vote_count+'</span>';
+		if(vote_count != ' '){
+			returnpoll += '<div class="optionmeter" style="width:'+postjson['poll_data']['options'][popt]['vote_count']/postjson['poll_data']['total_vote_count']*100+'%;"></div>';
+		}
+		returnpoll += '</div>';
+	}
+	returnpoll += '<div class="totalvotes">Total votes: '+postjson['poll_data']['total_vote_count']+'</div>';
+	returnpoll += '</div>';
+	return returnpoll;
+}
+function playaud(id){
+document.getElementById(id).play();
+}
+function pauseaud(id){
+document.getElementById(id).pause();
+}
+function seeked(id){
+//document.getElementById(id).pause();
+document.getElementById('a'+id).currentTime  = document.getElementById('v'+id).currentTime;
 }
 doit();
 </script>
@@ -307,7 +419,7 @@ p {margin: 0;margin-bottom: 12px;}
 }
 .post {
     padding: 10px;
-    border-bottom: 1px solid #ddd;
+        border-bottom: 4px solid #ddd;
 }
 
 .post_author {
@@ -338,7 +450,7 @@ p {margin: 0;margin-bottom: 12px;}
 .postc.selftext {
     word-break: break-word;
     font-size: 15px;
-    height: 100px;
+    max-height: 100px;
     overflow: hidden;
 	box-shadow: inset 0 -15px 5px -7px #ddd;
     padding-bottom: 0px;
@@ -428,6 +540,38 @@ input#subssearchi {
 
     animation: jump 0.2s;
 }
+span.polloptiontext {
+    white-space: pre;
+    width: 80%;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 14px;
+    display: inline-block;
+}
+
+span.votecount {
+    width: 17%;
+    display: inline-block;
+    text-align: right;
+    font-size: 13px;
+}
+
+.polloption {
+    padding: 5px 0px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0px;
+}
+
+.optionmeter {
+    background: #369;
+    height: 2px;
+}
+
+.totalvotes {
+    font-size: 16px;
+    padding: 5px 0;
+}
 .hidden{display:none;}
 
 @keyframes jump{
@@ -442,6 +586,151 @@ to{
  transform:scale(1);
 }
 
+
+}
+
+span#menu {
+    float: right;
+    position: absolute;
+    right: 10px;
+}
+
+div#rightbar {
+    position: absolute;
+    right: 0;
+    width: 50%;
+    max-width: 500px;
+    margin: 0 auto;
+    background: white;
+    z-index: 1000;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-top: 0px;
+    box-shadow: 0px 49px 30px #00000033;
+    border-radius: 0px 0px 5% 5%;
+    right: 10px;
+}
+
+div#rightbar a {
+    display: block;
+    border-bottom: 1px solid #eee;
+    padding: 10px 0px;
+    text-decoration: none;
+    color: #444;
+    font-size: 16px;
+    padding-left: 2%;
+}
+iframe.gifframe {
+    width: 100%;
+    height: 200px;
+    border: none;
+    overflow: hidden;
+}
+.post_meta {
+    font-size: 15px;
+    color: #444;
+    padding: 5px 2px 0px;
+}
+div#rightbar {}
+
+div#leftbar {
+    position: absolute;
+    left: 0;
+    width: calc(100% - 30px);
+
+    margin: 0 auto;
+    background: white;
+    z-index: 1000;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-top: 0px;
+    box-shadow: 0px 49px 30px #00000033;
+    border-radius: 0px 0px 5% 5%;
+    
+}
+a.homelinks {
+
+        display: block;
+    border-bottom: 1px solid #eee;
+    padding: 10px 0px;
+    text-decoration: none;
+    color: #444;
+    font-size: 16px;
+    padding-left: 2%;
+}
+span#plus {
+    float: left;
+    position: absolute;
+    left: 10px;
+}
+a.wholethumb {
+    color: #222;
+    text-decoration: none;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.postc.thumblink {
+    overflow: hidden;
+}
+
+.thumb {
+    width: 60px;
+    height: 60px;
+    overflow: hidden;
+    display: inline-block;
+    float: left;
+}
+
+.thumb img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+
+.thumblinklink {
+    background: #eee;
+    display: inline-block;
+    height: 52px;
+    width: calc(100% - 80px);
+    float: left;
+    padding: 0px 10px 0px;
+    padding-top: 8px;
+	word-break: break-all;
+}
+span.menubars {
+    font-size: 0px;
+    border-top: 1px solid #000;
+    width: 25px;
+    height: 1px;
+    display: inline-block;
+  
+}
+span.menubars:before {
+    content:" ";
+ 
+    border-top: 1px solid #000;
+    width: 25px;
+    height: 2px;
+    display: block;
+    margin-top:5px;
+
+}
+span.menubars:after {
+    content:" ";
+ 
+    border-top: 1px solid #000;
+    width: 25px;
+    height: 2px;
+    display: block;
+    margin-top:3px;
+}
+
+span#menu {
+    margin-top: -5px;
 }
 </style>
-</body></html> 
+</body></html>
