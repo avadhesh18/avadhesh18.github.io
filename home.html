@@ -1,153 +1,45 @@
 
 <!DOCTYPE html>
-
-
-    <html>
-
-    <head>
-
-        <title>Reddit mobile web viewer</title>
-
-        
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-<meta charset="utf8"></head>
+ <html><head><title>Reddit mobile web viewer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+<meta charset="utf8">
+<link rel="stylesheet" href="styles.css"  type="text/css"/>
+</head>
 <body>
-
+<div id="header">
 <div id="pagetitle" >
 <span id="plus" onclick="toggle('leftbar')" >+</span>
 <span id="pagetitletext" onclick="toggle('subssearch')">Home </span>
 <span id="menu" onclick="toggle('rightbar')" ><span class="menubars">Menu</span></span>
-</div>
+</div></div>
+<div id="menus">
 <div id="subssearch" class="hidden">
 <input type="text" id="subssearchi" name="qury" onkeyup="searchsubs(this.value,event)" autocomplete="off"/>
-<div id="subslist">
+<div id="subslist"></div>
 
-</div>
 </div>
 <div id="leftbar" class="hidden">
 <div class="list">
-<a href="sr.html" class="homelinks">Home</a>
+<a href="home.html" class="homelinks">Home</a>
 <a href="subreddit.htm?r=alll" class="homelinks">All</a>
 <div id="subscribed"></div>
+<div id="cthemew"><a onclick="toggletheme('dark')" id="themebtn">Dark mode</a></div>
 </div>
 </div>
 <div id="rightbar" class="hidden"></div>
-<div id="body">
 
+<div id="body">
 </div>
 
-
+<script src="functions.js"></script>
 <script>
-var bmr = '';
 
-
-function toggle(id){
-var x = document.getElementsByClassName("show");
-for (k = 0; k < x.length; k++) {
-if(x[k].id != id) {
-  x[k].classList.toggle("hidden");
-  x[k].classList.toggle("show");  }
-}
-
-document.getElementById(id).classList.toggle("hidden");
-document.getElementById(id).classList.toggle("show");
-if(id == "subssearch"){
-document.getElementById("subssearchi").focus();
-}
-}
-
-function searchsubs(q,event) {
-if(bmr){bmr.abort();}
-var xhr = new XMLHttpRequest();
- bmr = xhr;
-xhr.onreadystatechange = function()
-{
-    if (xhr.readyState === 4 && xhr.status == 200)
-    {
-        subslist = xhr.response;
-		fillsubs = '';
-		console.log(subslist);
-		for (var singlesub in subslist['subreddits'] )   
-{
-console.log(subslist[singlesub]);
-fillsubs += '<a href="subreddit.html?r=' + subslist['subreddits'][singlesub]['name']+'">'+subslist['subreddits'][singlesub]['name']+'</a>';
-}
-document.getElementById('subslist').innerHTML = fillsubs;
-		}
-}
-xhr.responseType = 'json';
-xhr.open('GET', 'https://www.reddit.com//api/subreddit_autocomplete/.json?query='+q+'&include_profiles=false&include_over_18=true', true)
-xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-xhr.send();
-if(q.length > 1){
-var key = event.keyCode || event.charCode;
-if( key == 13 ) {
-if(typeof subslist['subreddits'] !== undefined) {
-window.location = 'subreddit.html?r=' + subslist['subreddits'][0]['name']+'';}
-}}
-}
-
-function htmlDecode(input){
-  var e = document.createElement('textarea');
-  e.innerHTML = input;
-  // handle case of empty input
-  return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
-}
-function timeago(o){var t=Math.floor((new Date-o)/1e3),a=t/31536e3;return a>1?Math.floor(a)+"y":(a=t/2592e3)>1?Math.floor(a)+"mo":(a=t/86400)>1?Math.floor(a)+"d":(a=t/3600)>1?Math.floor(a)+"h":(a=t/60)>1?Math.floor(a)+"m":Math.floor(t)+"s"}
-function addlc(to,data){
-addarr = JSON.parse(localStorage.getItem(to) || '[]');
-addarr.push(data);
-localStorage.setItem(to,JSON.stringify(addarr));
-}
-
-function checklc(to,cfor){
-chkarr = JSON.parse(localStorage.getItem(to) || '[]');
-return chkarr.includes(cfor);
-
-}
-function removelc(to,cfor){
-addarr = JSON.parse(localStorage.getItem(to) || '[]');
-addarr = addarr.filter(function(item) {
-    return item !== cfor
-})
-
-localStorage.setItem(to,JSON.stringify(addarr));
-}
-function unsubscribe(sub){removelc('subs',sub); subbtn = document.getElementById('subbtn');  
- subbtn.setAttribute( "onclick",  'subscribe(\''+sub+'\')' ); subbtn.innerHTML = 'Subscribe';}
-function subscribe(sub){addlc('subs',sub);
-subbtn = document.getElementById('subbtn');
-subbtn.setAttribute( "onclick",  'unsubscribe(\''+sub+'\')' );
- subbtn.innerHTML = 'Unsubscribe';}
+ 
+//Loading of posts
+ 
 function doit(){
+links = '<a href="home.html?x=y&sort=new">New</a><a href="home.html?x=y&sort=best">Best</a><a href="?x=y&sort=rising">Rising</a><a href="home.html?x=y&sort=top">Top</a>';
 
-
-if(JSON.parse(localStorage.getItem("subs")) !== null){
-subslisted = ''; subslistedarray = JSON.parse(localStorage.getItem("subs"));
-for(x in subslistedarray){
-subslisted += '<a href="?subreddit,html?r='+subslistedarray[x]+'" class="homelinks">'+subslistedarray[x]+'</a>';
-}
-document.getElementById('subscribed').innerHTML = subslisted;
-}
-
-function getget(name, url = window.location.href) {
-    name = name.replace(/[\[\]]/g, '\\$&');
-    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-        results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, ' '));
-}
-
-
-
-links = '<a href="subreddit.html?r='+getget('r')+'&sort=new">New</a><a href="subreddit.html?r='+getget('r')+'&sort=best">Best</a><a href="subreddit.html?r='+getget('r')+'&sort=rising">Rising</a><a href="subreddit.html?r='+getget('r')+'&sort=top">Top</a><a href="subreddit.html?r='+getget('r')+'&sort=top&t=month">Top (month)</a><a href="subreddit.html?r='+getget('r')+'&sort=top&t=all">Top (all)</a>';
-if(checklc('subs',getget('r'))){
-links += '<a onclick="unsubscribe(\''+getget('r')+'\')" id="subbtn">Unsubscribe</a>';
-}
-else {
-links += '<a onclick="subscribe(\''+getget('r')+'\')" id="subbtn">Subscribe</a>';
-}
 
 document.getElementById('rightbar').innerHTML = links;
 var fill = '';
@@ -175,7 +67,7 @@ url = url+''+getget('sort')+'';
 
 
 console.log(url);
-url = url+'.json?limit=30';
+url = url+'.json?limit=20';
 if(getget('t') != null){
 console.log(getget('t'));
 url = url+'&t='+getget('t');
@@ -192,46 +84,13 @@ var req = new XMLHttpRequest();
 req.responseType = 'json';
 req.open('GET', url, true);
 req.onload  = function() {
-   var jsonResponse = req.response;
-   // do something with jsonResponse
-  // console.log(jsonResponse);
-//console.log(jsonResponse[0]['data']['children'][0]);
-
-//thisthread = jsonResponse[0]['data']['children'][0]['data'];
+var jsonResponse = req.response;
+ 
 
 var titlesx = url.replace("https://www.reddit.com/r/", "");
- titlesx = titlesx.replace("/.json", "");
-
-
-//fill  += '<div class="rdxt_h1">'+ titlesx+'</div>';
-
-//fill += '<div class="meta">In: '+  thisthread['subreddit_name_prefixed']+' by: u/'+  thisthread['author']+' on: '+datestring+'</div>';
-
+titlesx = titlesx.replace("/.json", "");
 document.title = titlesx;
-//fill += '<div class="rdxt_selftext">'+  htmlDecode(thisthread['selftext_html'])+'</div>';
-
-/*
-
-urli = thisthread['url_overridden_by_dest'];
-console.log(urli);
-if(typeof urli != "undefined"){
-if (urli.match(/.(jpg|jpeg|png|gif)$/i))
-{
-fill += '<div class="rdxt_selftext"><img src="'+ urli +'"/></div>';
-}
-else {
-fill += '<div class="rdxt_selftext"><a href="'+ urli +'" target="_blank">'+urli +'</a></div>';
-}
-}
-*/
 posts = jsonResponse['data']['children'];
-function htmlDecode(input){
-  var e = document.createElement('textarea');
-  e.innerHTML = input;
-  // handle case of empty input
-  return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
-}
-
 
 
 for(var item in posts) {
@@ -252,485 +111,7 @@ req.send(null);
 }
 
 
-function postbuilder(post){
-returnfpost = '';
-timeagoed = timeago(post['created_utc']*1000);
-returnfpost +=  '<div class="post" id="'+post['id']+'"><div class="post_author">'+ post['author'] +' &bull; <a href="subreddit.html?r='+pid["subreddit"]+'">'+pid["subreddit_name_prefixed"]+'</a> &bull; '+timeagoed+'</div><div class="post_link"><a href="comments.html?url=https://www.reddit.com'+ post['permalink']+'">'+post['title']+'</a></div>';
-if(post["selftext_html"] != null){
-returnfpost += '<div class="postc selftext">'+htmlDecode(post["selftext_html"])+'</div>';
-}
-urli = post['url_overridden_by_dest'];
-if(typeof urli != "undefined"){  returnfpost += urlpreview(urli,pid); }
-if(pid['poll_data'] != null){
-returnfpost += pollbuilder(pid);
-}
-returnfpost += '<div class="post_meta">'+pid['score']+' votes &bull; '+pid['num_comments']+' comments</div></div>';
-return returnfpost;
-}
-function urlpreview(urli,postjson) {
-returnpost = '';	
-	if (urli.match(/.(jpg|jpeg|png|gif)$/i))
-	{
-		returnpost += '<div class="postc singleimage"><img src="'+ urli +'"/></div>';
-	}
-	else if (urli.match(/www.reddit.com\/gallery/g))
-	{
-	returnpost += '<div class="postc gallery">';
-	for(var singlept in postjson['media_metadata']) {
-		singleptlink = postjson['media_metadata'][singlept]['s']['u'];
-		if(typeof singleptlink == "undefined"){          singleptlink = postjson['media_metadata'][singlept]['s']['gif'];          }
-		else {
-		singleptlink = singleptlink.replace("preivew.redd", "i.redd");}
-		returnpost +='<img src="'+singleptlink+'" />';
-	}
-	returnpost += '</div>';
-	}
-	else if (urli.match(/v.redd.it/g))
-	{
-	returnpost += '<div class="postc video">';
-		if(postjson['secure_media'] != null) {
-		vidurl =  postjson['secure_media']['reddit_video']['fallback_url']; 
-		returnpost +='<video id="v'+postjson['id']+'" src="'+vidurl+'" poster="'+postjson["thumbnail"]+'" width="100%" height="240" preload="metadata" onplay="playaud(\'a'+postjson['id']+'\')"  onpause="pauseaud(\'a'+postjson['id']+'\')"  onseeking="pauseaud(\'a'+postjson['id']+'\')"  onseeked="seeked(\''+postjson['id']+'\')"   controls> </video><audio src="'+urli+'/DASH_audio.mp4" id="a'+postjson['id']+'" controls></audio>	';
-		}
-		else {returnpost += 'crosspost';}
-	returnpost += '</div>';
-	}
-	else if (urli.match(/redgifs/g))
-	{
-	
-	returnpost += '<div class="postc video">';
-	vidurl = postjson['secure_media']['oembed']['thumbnail_url']; 
-	if(typeof vidurl == "undefined"){
-		vidurl = urli.replace("redgifs.com/watch/", "redgifs.com/ifr/");
-		vidurl = '<iframe src="'+vidurl+'?autoplay=0" class="gifframe"></iframe>';
-		returnpost += vidurl;
-	}
-	else {
-		vidurl = vidurl.replace("-mobile.jpg", ".mp4")
-		returnpost +='<video src="'+vidurl+'" poster="'+postjson["thumbnail"]+'" width="100%" height="240" preload="metadata" controls> </video>';
-	}
-	returnpost += '</div>';
-	}
-	else if (urli.match(/gfycat.com/g)){
-	returnpost += '<div class="postc video">';
-	if(postjson['secure_media'] == null || typeof postjson['secure_media']['oembed']['thumbnail_url'] == "undefined" ){
-		vidurl = urli.replace("gfycat.com/", "gfycat.com/ifr/");
-		vidurl = '<iframe src="'+vidurl+'?autoplay=0" class="gifframe"></iframe>';
-		returnpost += vidurl;
-	}
-	else {
-		vidurl = postjson['secure_media']['oembed']['thumbnail_url']; 
-		vidurl = vidurl.replace("size_restricted.gif", "mobile.mp4")
-		returnpost +='<video src="'+vidurl+'" poster="'+postjson["thumbnail"]+'" width="100%" height="240" preload="metadata" controls> </video>';
-		}
-	returnpost += '</div>';
-	}
-	else if (urli.match(/i.imgur.com(.*?)gifv/g))
-	{
-	returnpost += '<div class="postc video">';
-	vidurl = urli.replace(".gifv", ".mp4") 
-	returnpost +='<video src="'+vidurl+'" poster="'+postjson["thumbnail"]+'" width="100%" height="240" preload="metadata" controls> </video>';
-	returnpost += '</div>';
-	}
-	else {
-	thumbnailforit = '';
-	if(postjson["thumbnail"].length > 9){
-		returnpost += '<a href="'+ urli +'" target="_blank" class="wholethumb"><div class="postc thumblink"><div class="thumb"><img src="'+postjson["thumbnail"]+'"/></div><div class="thumblinklink">'+urli +'</div></div></a>';
-	}
-	else {
-		returnpost += '<div class="postc link"><a href="'+ urli +'" target="_blank">'+thumbnailforit+''+urli +'</a></div>';
-	}
-	}
-	return returnpost;
-}
-function pollbuilder(postjson) {
-	returnpoll = '<div class="poll">';
-	for(popt in postjson['poll_data']['options']){
-		vote_count = postjson['poll_data']['options'][popt]['vote_count'];
-		"undefined"==typeof vote_count&&(vote_count=" ");
-		returnpoll += '<div class="polloption"><span class="polloptiontext">'+postjson['poll_data']['options'][popt]['text']+'</span> <span  class="votecount">'+vote_count+'</span>';
-		if(vote_count != ' '){
-			returnpoll += '<div class="optionmeter" style="width:'+postjson['poll_data']['options'][popt]['vote_count']/postjson['poll_data']['total_vote_count']*100+'%;"></div>';
-		}
-		returnpoll += '</div>';
-	}
-	returnpoll += '<div class="totalvotes">Total votes: '+postjson['poll_data']['total_vote_count']+'</div>';
-	returnpoll += '</div>';
-	return returnpoll;
-}
-function playaud(id){
-document.getElementById(id).play();
-}
-function pauseaud(id){
-document.getElementById(id).pause();
-}
-function seeked(id){
-//document.getElementById(id).pause();
-document.getElementById('a'+id).currentTime  = document.getElementById('v'+id).currentTime;
-}
 doit();
 </script>
-
-<style>
-.rdxt_h1{font-size:40px}body{font-size:18px;font-family:segoe ui,arial,sans-serif;margin:0 auto}.comment{background:#f2f2f2;padding:10px;margin-bottom:5px;    word-break: break-word;}
-h1 {
-    margin: 6px 0px;
-    padding: 0;
-    font-size: 1.5em;
-}
-
-h2 {
-    margin: 6px 0px;
-    padding: 0;
-    font-size: 1.3em;
-}
-blockquote {
-    font-size: 16px;
-    border-left: 2px solid grey;
-    padding-left: 10px;
-    margin-left: 10px;
-    color: #444;
-}
-p {margin: 0;margin-bottom: 12px;}
-.comment_author{font-size:14px}.comment_text p{margin:0;padding:0;margin-bottom:5px}.comment.ccp1{border-left:2px solid #d82c2b;margin-left:15px}div#body{margin:0 auto;max-width:500px}.comment.ccp2{margin-left:35px;font-size:17px;border-left:2px solid #2fd01d}.comment.ccp3{margin-left:59px;font-size:16px;border-left:2px solid #d0ba17}a.viewmore{clear:both;display:block;text-align:right;color:#333;font-size:14px;margin-bottom:3px;margin-top:-10px}.ccp0{border-left:2px solid #0095ff}
-.rdxt_selftext img {
-    max-width: 100%;
-}
-.rdxt_selftext {
-    padding: 10px;
-    font-size: 17px;
-    word-break: break-word;
-}
-
-
-.rdxt_h1 {
-    font-size: 40px;
-    background: #eee;
-    text-align: center;
-    padding: 15px;
-    font-size: 20px;
-}
-.meta {
-    background: white;
-    text-align: center;
-    font-size: 15px;
-    padding: 5px 10px;
-    border-bottom: 1px solid #ddd;
-}
-.post {
-    padding: 10px;
-        border-bottom: 4px solid #ddd;
-}
-
-.post_author {
-    font-size: 14px;
-    color: #555;
-	       overflow: auto;
-    white-space: pre;
-}
-
-.post_link a {
-    text-decoration: none;
-    font-size: 18px;
-	color: #069;
-}
-.post_link {
-    padding: 6px 0px 8px;
-}
-
-.postc.singleimage img {
-    max-width: 100%;
-}
-
-.post_link a:visited {
-    color: #517f96;
-}
-
-.postc.singleimage {}
-.postc.selftext {
-    word-break: break-word;
-    font-size: 15px;
-    max-height: 100px;
-    overflow: hidden;
-	box-shadow: inset 0 -15px 5px -7px #ddd;
-    padding-bottom: 0px;
-}
-.postc.gallery {
-    white-space: pre;
-    overflow-x: scroll;
-}
-
-.postc.gallery img {
-    max-width: 300px;
-    max-height: 300px;
-
-}
-.postc.link a {
-    background: #eee;
-    color: #222;
-    text-decoration: none;
-    padding: 10px;
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    border-radius: 5px;
-    font-size: 14px;
-}
-.postc.selftext a {
-    color: #333;
-}
-div#addsub {
-    display: none;
-}
-
-div#pagetitle {
-    text-align: center;
-    background: #eee;
-    padding: 8px;
-}
-.navigate {
-    padding: 10px 0px;
-}
-
-a.next {
-    text-align: right;
-    display: block;
-    color: #369;
-    text-decoration: none;
-}
-
-div#subssearch {
-    position: absolute;
-    left: 0;
-    right: 0;
-    width: 90%;
-    max-width: 500px;
-    margin: 0 auto;
-    background: white;
-    z-index: 1000;
-    padding: 10px;
-    border: 1px solid #eee;
-    border-top: 0px;
-    box-shadow: 0px 49px 30px #00000033;
-    border-radius: 0px 0px 5% 5%;
-}
-
-div#subslist a {
-    display: block;
-    border-bottom: 1px solid #eee;
-    padding: 10px 0px;
-    text-decoration: none;
-    color: #444;
-    font-size: 16px;
-    padding-left: 2%;
-}
-
-input#subssearchi {
-    background: #ddd;
-    background: white;
-    border: 2px solid #ddd;
-    outline: none;
-    padding: 10px;
-    width: 94%;
-    margin: 0 auto;
-    display: block;
-    border-radius: 10px;
-}
-.show {
-
-    animation: jump 0.2s;
-}
-span.polloptiontext {
-    white-space: pre;
-    width: 80%;
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 14px;
-    display: inline-block;
-}
-
-span.votecount {
-    width: 17%;
-    display: inline-block;
-    text-align: right;
-    font-size: 13px;
-}
-
-.polloption {
-    padding: 5px 0px;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 0px;
-}
-
-.optionmeter {
-    background: #369;
-    height: 2px;
-}
-
-.totalvotes {
-    font-size: 16px;
-    padding: 5px 0;
-}
-.hidden{display:none;}
-
-@keyframes jump{
-from{
-
-opacity:0;
-transform: scale(0.8);
-}
-to{
- transform: translateY(0px);   
- opacity:1;
- transform:scale(1);
-}
-
-
-}
-
-span#menu {
-    float: right;
-    position: absolute;
-    right: 10px;
-}
-
-div#rightbar {
-    position: absolute;
-    right: 0;
-    width: 50%;
-    max-width: 500px;
-    margin: 0 auto;
-    background: white;
-    z-index: 1000;
-    padding: 10px;
-    border: 1px solid #eee;
-    border-top: 0px;
-    box-shadow: 0px 49px 30px #00000033;
-    border-radius: 0px 0px 5% 5%;
-    right: 10px;
-}
-
-div#rightbar a {
-    display: block;
-    border-bottom: 1px solid #eee;
-    padding: 10px 0px;
-    text-decoration: none;
-    color: #444;
-    font-size: 16px;
-    padding-left: 2%;
-}
-iframe.gifframe {
-    width: 100%;
-    height: 200px;
-    border: none;
-    overflow: hidden;
-}
-.post_meta {
-    font-size: 15px;
-    color: #444;
-    padding: 5px 2px 0px;
-}
-div#rightbar {}
-
-div#leftbar {
-    position: absolute;
-    left: 0;
-    width: calc(100% - 30px);
-
-    margin: 0 auto;
-    background: white;
-    z-index: 1000;
-    padding: 10px;
-    border: 1px solid #eee;
-    border-top: 0px;
-    box-shadow: 0px 49px 30px #00000033;
-    border-radius: 0px 0px 5% 5%;
-    
-}
-a.homelinks {
-
-        display: block;
-    border-bottom: 1px solid #eee;
-    padding: 10px 0px;
-    text-decoration: none;
-    color: #444;
-    font-size: 16px;
-    padding-left: 2%;
-}
-span#plus {
-    float: left;
-    position: absolute;
-    left: 10px;
-}
-a.wholethumb {
-    color: #222;
-    text-decoration: none;
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
-.postc.thumblink {
-    overflow: hidden;
-}
-
-.thumb {
-    width: 60px;
-    height: 60px;
-    overflow: hidden;
-    display: inline-block;
-    float: left;
-}
-
-.thumb img {
-    object-fit: cover;
-    width: 100%;
-    height: 100%;
-}
-
-.thumblinklink {
-    background: #eee;
-    display: inline-block;
-    height: 52px;
-    width: calc(100% - 80px);
-    float: left;
-    padding: 0px 10px 0px;
-    padding-top: 8px;
-	word-break: break-all;
-}
-span.menubars {
-    font-size: 0px;
-    border-top: 1px solid #000;
-    width: 25px;
-    height: 1px;
-    display: inline-block;
-  
-}
-span.menubars:before {
-    content:" ";
- 
-    border-top: 1px solid #000;
-    width: 25px;
-    height: 2px;
-    display: block;
-    margin-top:5px;
-
-}
-span.menubars:after {
-    content:" ";
- 
-    border-top: 1px solid #000;
-    width: 25px;
-    height: 2px;
-    display: block;
-    margin-top:3px;
-}
-
-span#menu {
-    margin-top: -5px;
-}
 </style>
 </body></html>
