@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
  <html><head><title>Reddit mobile web viewer</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
@@ -91,6 +90,7 @@ if(getget('t') != null){
 console.log(getget('t'));
 url = url+'&t='+getget('t');
 }
+url= url+'&include_over_18=on';
 
 if(getget('after') != null){
 url = url+'&after='+getget('after');
