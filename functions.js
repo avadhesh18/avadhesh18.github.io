@@ -1,6 +1,16 @@
 var bmr = '';
 // Utility functions [UNIVERSAL]
 
+
+if(JSON.parse(localStorage.getItem("subs")) !== null){
+subslisted = ''; subslistedarray = JSON.parse(localStorage.getItem("subs"));
+for(x in subslistedarray){
+subslisted += '<a href="subreddit.html?r='+subslistedarray[x]+'" class="homelinks">'+subslistedarray[x]+'</a>';
+}
+document.getElementById('subscribed').innerHTML = subslisted;
+}
+
+
 if(localStorage.getItem('color') == 'dark'){
 toggletheme('dark');
 }
@@ -112,12 +122,16 @@ subbtn.setAttribute( "onclick",  'unsubscribe(\''+sub+'\')' );
 function postbuilder(post){
 returnfpost = '';
 timeagoed = timeago(post['created_utc']*1000);
-returnfpost +=  '<div class="post" id="'+post['id']+'"><div class="post_author">'+ post['author'] +' &bull; <a target="_blank" href="subreddit.html?r='+post["subreddit"]+'">'+post["subreddit_name_prefixed"]+'</a> &bull; '+timeagoed+'</div><div class="post_link"><a href="comments.html?url=https://www.reddit.com'+ post['permalink']+'">'+post['title']+'</a></div>';
+sticky = post['stickied'] ? " sticky" :" ";
+ismod = (post['distinguished'] == "moderator") ? " moderator" :" ";
+returnfpost +=  '<div class="post" id="'+post['id']+'"><div class="post_author"><a href="subreddit.html?r='+post["subreddit"]+'">'+post["subreddit_name_prefixed"]+'</a> &bull;  <a href="user.html?u='+post["author"]+'">'+post["author"]+'</a>  &bull; '+timeagoed+'</div><div class="post_link'+ sticky+' '+ismod+'"><a href="comments.html?url=https://www.reddit.com'+ post['permalink']+'">'+post['title']+'</a></div>';
 if(post["selftext_html"] != null){
 returnfpost += '<div class="postc selftext">'+htmlDecode(post["selftext_html"])+'</div>';
 }
 urli = post['url_overridden_by_dest'];
-if(post['crosspost_parent_list'] != null  || typeof post['crosspost_parent_list'] != "undefined"){
+console.log((typeof  post['crosspost_parent_list'] !== 'undefined' &&  post['crosspost_parent_list'].length > 0));
+
+if((post['crosspost_parent_list'] != null &&  post['crosspost_parent_list'].length > 0) ||  (typeof  post['crosspost_parent_list'] !== 'undefined' &&  post['crosspost_parent_list'].length > 0)){
 returnfpost += postbuilder(post['crosspost_parent_list'][0]);
 }
 else {
@@ -231,3 +245,41 @@ function seeked(id){
 //document.getElementById(id).pause();
 document.getElementById('a'+id).currentTime  = document.getElementById('v'+id).currentTime;
 }
+function getget(name, url = window.location.href) {
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
+
+
+
+window.onload = function(){
+	curq = getget('q') ? getget('q'): '';
+	html1  =          '<form class="search" action="search.html"><input type="search" name="q" value="'+curq+'"/>';
+	    if (window.location.href.indexOf("?r=") > -1 || window.location.href.indexOf("&r=") > -1) {
+    html1 += '<input type="checkbox" id="chk1" name="r" value="'+getget('r')+'" checked><label for="chk1">Only search r/'+getget('r')+'</label>';
+    }
+		    if (window.location.href.indexOf("?u=") > -1 || window.location.href.indexOf("&u=") > -1) {
+    html1 += '<input type="checkbox" id="chk1" name="u" value="'+getget('u')+'" checked><label for="chk1">Only search u/'+getget('u')+'</label>';
+    }
+	
+		    if (window.location.href.indexOf("/r/") > -1) {
+				ther = window.location.href.match(/r\/(.*?)\//s)[1];
+    html1 += '<input type="checkbox" id="chk1" name="r" value="'+ther+'" checked><label for="chk1">Only search r/'+ther+'</label>';
+    }
+	html1 += '<input type="submit" value="Search"/></form>';
+
+	
+	document.getElementById("leftbar").insertAdjacentHTML("afterBegin",
+          html1);
+
+	
+}
+
+
+
+
