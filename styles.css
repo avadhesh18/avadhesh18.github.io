@@ -30,7 +30,7 @@ h2 {
 blockquote {
     font-size: 16px;
     border-left: 2px solid grey;
-    border-left: 2px solid var(--greyc);
+    border-left: 2px solid var(--lightc);
     padding-left: 10px;
     margin-left: 10px;
 }
@@ -388,6 +388,15 @@ span.menubars:before {
     margin-top:5px;
 
 }
+.post_link.sticky:before {content: "PINNED";background: var(--greyc);font-size: 13px;padding: 5px;color: var(--lightc);margin-right:5px;}
+.post_link.sticky:after {
+    content: "M";
+    background: var(--greyc);
+    font-size: 13px;
+    padding: 5px;
+    color:#47af47;
+    margin-left: 5px;
+}
 span.menubars:after {
     content:" ";
  
@@ -397,6 +406,43 @@ span.menubars:after {
     height: 2px;
     display: block;
     margin-top:3px;
+}
+.search input[type="search"] {
+    display: block;
+    background: var(--greyc);
+    width: calc(100% - 20px);
+    padding: 5px;
+    border: 1px solid var(--lightc);
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+    max-width: 300px;
+    color: var(--textc);
+    float: left;
+}
+
+.search label {
+    font-size: 13px;
+}
+
+label {}
+
+.search input[type="submit"] {
+    font-size: 12px;
+    background: var(--greyc);
+    padding: 2px 5px;
+    border-radius: 5px;
+    font-size: 14px;
+    margin-left: 5px;
+    color: var(--textc);
+    border: 1px solid var(--textc);
+}
+
+input[type="submit"] {}
+
+form.search {
+    padding: 5px 10px;
+    clear: both;
 }
 .isop {
     color: var(--linkc);
