@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
  <html><head><title>Reddit mobile web viewer</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
@@ -37,25 +38,6 @@
 //Loading of posts
  
 function doit(){
-if(JSON.parse(localStorage.getItem("subs")) !== null){
-subslisted = ''; subslistedarray = JSON.parse(localStorage.getItem("subs"));
-for(x in subslistedarray){
-subslisted += '<a href="?subreddit,html?r='+subslistedarray[x]+'" class="homelinks">'+subslistedarray[x]+'</a>';
-}
-document.getElementById('subscribed').innerHTML = subslisted;
-}
-
-function getget(name, url = window.location.href) {
-    name = name.replace(/[\[\]]/g, '\\$&');
-    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-        results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, ' '));
-}
-
-
-
 links = '<a href="subreddit.html?r='+getget('r')+'&sort=new">New</a><a href="subreddit.html?r='+getget('r')+'&sort=best">Best</a><a href="subreddit.html?r='+getget('r')+'&sort=rising">Rising</a><a href="subreddit.html?r='+getget('r')+'&sort=top">Top</a><a href="subreddit.html?r='+getget('r')+'&sort=top&t=month">Top (month)</a><a href="subreddit.html?r='+getget('r')+'&sort=top&t=all">Top (all)</a>';
 if(checklc('subs',getget('r'))){
 links += '<a onclick="unsubscribe(\''+getget('r')+'\')" id="subbtn">Unsubscribe</a>';
