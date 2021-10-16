@@ -124,7 +124,7 @@ returnfpost = '';
 timeagoed = timeago(post['created_utc']*1000);
 sticky = post['stickied'] ? " sticky" :" ";
 ismod = (post['distinguished'] == "moderator") ? " moderator" :" ";
-returnfpost +=  '<div class="post" id="'+post['id']+'"><div class="post_author"><a href="subreddit.html?r='+post["subreddit"]+'">'+post["subreddit_name_prefixed"]+'</a> &bull;  <a href="user.html?u='+post["author"]+'">'+post["author"]+'</a>  &bull; '+timeagoed+'</div><div class="post_link'+ sticky+' '+ismod+'"><a href="comments.html?url=https://www.reddit.com'+ post['permalink']+'">'+post['title']+'</a></div>';
+returnfpost +=  '<div class="post" id="'+post['id']+'"><div class="post_author"><a target="_blank" href="subreddit.html?r='+post["subreddit"]+'">'+post["subreddit_name_prefixed"]+'</a> &bull;  <a href="user.html?u='+post["author"]+'">'+post["author"]+'</a>  &bull; '+timeagoed+'</div><div class="post_link'+ sticky+' '+ismod+'"><a href="comments.html?url=https://www.reddit.com'+ post['permalink']+'">'+post['title']+'</a></div>';
 if(post["selftext_html"] != null){
 returnfpost += '<div class="postc selftext">'+htmlDecode(post["selftext_html"])+'</div>';
 }
