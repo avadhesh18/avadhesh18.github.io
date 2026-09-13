@@ -1,0 +1,96 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HLS Player</title>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        width: 100%;
+        height: 100%;
+    }
+
+    video {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: contain;
+    }
+</style>
+</head>
+
+<body>
+
+<video id="video" controls autoplay playsinline></video>
+
+<script>
+const video = document.getElementById('video');
+
+const streamUrl =
+    'https://dishmt.slivcdn.com/hls/live/2011670/SonyMaxhd/master.m3u8?hdnea=exp=1789347840~acl=/*~id=66646112155930483798580590417701~hmac=750e33dc527bef6868825687c609e9ab5672afb3503d60ade20ec9dbbe47d147';
+
+if (Hls.isSupported()) {
+
+    const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true
+    });
+
+    hls.loadSource(streamUrl);
+    hls.attachMedia(video);
+
+    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+        video.play().catch(() => {});
+    });
+
+    hls.on(Hls.Events.ERROR, function (event, data) {
+        console.log('HLS error:', data);
+
+        if (data.fatal) {
+            switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                    console.log('Network error — retrying...');
+                    hls.startLoad();
+                    break;
+
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                    console.log('Media error — recovering...');
+                    hls.recoverMediaError();
+                    break;
+
+                default:
+                    hls.destroy();
+                    break;
+            }
+        }
+    });
+
+} else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+
+    // Safari / native HLS
+    video.src = streamUrl;
+
+    video.addEventListener('loadedmetadata', function () {
+        video.play().catch(() => {});
+    });
+
+} else {
+    document.body.innerHTML =
+        '<p style="color:white;text-align:center;padding:30px;">HLS is not supported in this browser.</p>';
+}
+</script>
+
+</body>
+</html>
+```
